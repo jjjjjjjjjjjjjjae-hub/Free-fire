@@ -14,9 +14,8 @@ jobs:
       - name: Setup Environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y apksigner openjdk-17-jdk wget
+          sudo apt-get install -y apksigner openjdk-17-jdk wget zipalign
           wget -q https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar
-          sudo mkdir -p /usr/local/bin
           sudo cp apktool_2.9.3.jar /usr/local/bin/apktool.jar
           echo '#!/bin/bash' | sudo tee /usr/local/bin/apktool
           echo 'java -jar /usr/local/bin/apktool.jar "$@"' | sudo tee -a /usr/local/bin/apktool
@@ -26,7 +25,7 @@ jobs:
         run: cat Free_Fire.8.apk.part* > app.apk
 
       - name: Decompile
-        run: apktool d app.apk -o decompiled
+        run: apktool d app.apk -f -o decompiled
 
       - name: Patch
         run: python3 patch.py
@@ -34,13 +33,14 @@ jobs:
       - name: Rebuild
         run: apktool b decompiled --use-aapt2 -o patched_unsigned.apk
 
-      - name: Sign
+      - name: Sign & Align
         run: |
           keytool -genkey -v -keystore release.keystore -alias key -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=Android"
-          apksigner sign --ks release.keystore --ks-pass pass:123456 patched_unsigned.apk
+          zipalign -v 4 patched_unsigned.apk aligned.apk
+          apksigner sign --ks release.keystore --ks-pass pass:123456 --v2-signing-enabled true --v3-signing-enabled true --out final.apk aligned.apk
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: Almas-Modded-APK
-          path: patched_unsigned.apk
+          path: final.apk

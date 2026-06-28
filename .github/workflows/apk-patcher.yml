@@ -14,7 +14,16 @@ jobs:
       - name: Setup Environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y apktool apksigner openjdk-11-jdk
+          sudo apt-get install -y apksigner openjdk-17-jdk wget
+          
+          # Ескі apktool орнына ең жаңа 2.9.3 нұсқасын жүктеу
+          wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.3.jar -O apktool.jar
+          sudo mv apktool.jar /usr/local/bin/apktool.jar
+          
+          # Apktool-ды іске қосатын скрипт жасау
+          echo '#!/bin/bash' | sudo tee /usr/local/bin/apktool
+          echo 'java -jar /usr/local/bin/apktool.jar "$@"' | sudo tee -a /usr/local/bin/apktool
+          sudo chmod +x /usr/local/bin/apktool /usr/local/bin/apktool.jar
 
       - name: Assemble APK from parts
         run: cat Free_Fire.8.apk.part* > "Free Fire.8.apk"
@@ -23,7 +32,11 @@ jobs:
         run: apktool d "Free Fire.8.apk" -o decompiled
 
       - name: Patch Files
-        run: python3 patch.py
+        run: |
+          python3 patch.py
+          
+          # Қате беретін $ белгісі бар қоқыс файлдарды өшіру (Fix)
+          find decompiled/res/ -type f -name '$*.xml' -delete
 
       - name: Rebuild APK
         run: apktool b decompiled --use-aapt2 -o patched_unsigned.apk

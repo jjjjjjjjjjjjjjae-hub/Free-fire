@@ -16,29 +16,29 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y apksigner openjdk-17-jdk wget
           
-          # Ескі apktool орнына ең жаңа 2.9.3 нұсқасын жүктеу
-          wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.3.jar -O apktool.jar
+          # Apktool 2.9.3 жүктеу
+          wget https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar -O apktool.jar
           sudo mv apktool.jar /usr/local/bin/apktool.jar
           
-          # Apktool-ды іске қосатын скрипт жасау
+          # Скрипт орнату
           echo '#!/bin/bash' | sudo tee /usr/local/bin/apktool
           echo 'java -jar /usr/local/bin/apktool.jar "$@"' | sudo tee -a /usr/local/bin/apktool
           sudo chmod +x /usr/local/bin/apktool /usr/local/bin/apktool.jar
 
-      - name: Assemble APK from parts
+      - name: Assemble APK
         run: cat Free_Fire.8.apk.part* > "Free Fire.8.apk"
 
-      - name: Decompile APK
+      - name: Decompile
         run: apktool d "Free Fire.8.apk" -o decompiled
 
-      - name: Patch Files
+      - name: Patch & Cleanup
         run: |
           python3 patch.py
-          
-          # Қате беретін $ белгісі бар қоқыс файлдарды өшіру (Fix)
-          find decompiled/res/ -type f -name '$*.xml' -delete
+          # Қате беретін $ белгісі бар файлдарды тазалау
+          find decompiled/res/drawable* -name '$*' -delete
+          find decompiled/res/ -name '$*' -exec rm -f {} +
 
-      - name: Rebuild APK
+      - name: Rebuild
         run: apktool b decompiled --use-aapt2 -o patched_unsigned.apk
 
       - name: Sign APK
@@ -49,5 +49,5 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Modded-APK
+          name: Almas-Modded-APK
           path: patched_unsigned.apk

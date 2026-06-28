@@ -15,38 +15,30 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y apksigner openjdk-17-jdk wget
-          
-          # Apktool 2.9.3 жүктеу
+          # Apktool 2.9.3 (ең соңғы тұрақты нұсқа)
           wget https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar -O apktool.jar
-          sudo mv apktool.jar /usr/local/bin/apktool.jar
-          
-          # Скрипт орнату
           echo '#!/bin/bash' | sudo tee /usr/local/bin/apktool
           echo 'java -jar /usr/local/bin/apktool.jar "$@"' | sudo tee -a /usr/local/bin/apktool
           sudo chmod +x /usr/local/bin/apktool /usr/local/bin/apktool.jar
 
       - name: Assemble APK
-        run: cat Free_Fire.8.apk.part* > "Free Fire.8.apk"
+        run: cat Free_Fire.8.apk.part* > app.apk
 
       - name: Decompile
-        run: apktool d "Free Fire.8.apk" -o decompiled
+        run: apktool d app.apk -o decompiled
 
-      - name: Patch & Cleanup
-        run: |
-          python3 patch.py
-          # Қате беретін $ белгісі бар файлдарды тазалау
-          find decompiled/res/drawable* -name '$*' -delete
-          find decompiled/res/ -name '$*' -exec rm -f {} +
+      - name: Patch
+        run: python3 patch.py
 
       - name: Rebuild
         run: apktool b decompiled --use-aapt2 -o patched_unsigned.apk
 
-      - name: Sign APK
+      - name: Sign
         run: |
           keytool -genkey -v -keystore release.keystore -alias key -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=Android"
           apksigner sign --ks release.keystore --ks-pass pass:123456 patched_unsigned.apk
 
-      - name: Upload Artifact
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: Almas-Modded-APK

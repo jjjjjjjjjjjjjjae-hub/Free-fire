@@ -15,16 +15,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y apksigner openjdk-17-jdk wget
-          # Apktool жүктеу
           wget -q https://github.com/iBotPeaches/Apktool/releases/download/v2.9.3/apktool_2.9.3.jar
-          # Директорияны жасау және орнату
           sudo mkdir -p /usr/local/bin
           sudo cp apktool_2.9.3.jar /usr/local/bin/apktool.jar
-          # Bash скрипт жасау
           echo '#!/bin/bash' | sudo tee /usr/local/bin/apktool
           echo 'java -jar /usr/local/bin/apktool.jar "$@"' | sudo tee -a /usr/local/bin/apktool
-          sudo chmod +x /usr/local/bin/apktool
-          sudo chmod +x /usr/local/bin/apktool.jar
+          sudo chmod +x /usr/local/bin/apktool /usr/local/bin/apktool.jar
 
       - name: Assemble APK
         run: cat Free_Fire.8.apk.part* > app.apk

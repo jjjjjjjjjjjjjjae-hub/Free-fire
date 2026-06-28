@@ -1,28 +1,31 @@
 import os
-import re
 
-def clean_resources():
-    res_path = "decompiled/res"
-    public_xml = "decompiled/res/values/public.xml"
+def patch_all_resources():
+    res_dir = "decompiled/res"
     
-    # 1. $ белгісі бар барлық drawable файлдарды физикалық түрде өшіру
-    for root, dirs, files in os.walk(res_path):
+    # 1. Файл аттарын өзгерту (rename)
+    for root, dirs, files in os.walk(res_dir):
         for file in files:
-            if "$" in file:
-                os.remove(os.path.join(root, file))
-                print(f"[!] Файл өшірілді: {file}")
+            if file.startswith("$"):
+                old_path = os.path.join(root, file)
+                new_name = file.replace("$", "s_")
+                new_path = os.path.join(root, new_name)
+                os.rename(old_path, new_path)
 
-    # 2. public.xml ішіндегі $ белгісі бар барлық сілтемелерді өшіру
-    if os.path.exists(public_xml):
-        with open(public_xml, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-        
-        with open(public_xml, 'w', encoding='utf-8') as f:
-            for line in lines:
-                # Егер жолда $ белгісі болса, ол қажет емес ресурс, оны жазбаймыз
-                if "$" not in line:
-                    f.write(line)
-        print("[+] public.xml тазартылды.")
+    # 2. Барлық XML файлдардың ішіндегі сілтемелерді жаңарту
+    for root, dirs, files in os.walk(res_dir):
+        for file in files:
+            if file.endswith(".xml"):
+                path = os.path.join(root, file)
+                with open(path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                # drawable/$name -> drawable/s_name
+                new_content = content.replace("drawable/$", "drawable/s_")
+                
+                if content != new_content:
+                    with open(path, 'w', encoding='utf-8') as f:
+                        f.write(new_content)
 
 def add_mod_menu():
     manifest = "decompiled/AndroidManifest.xml"
@@ -40,6 +43,6 @@ def add_mod_menu():
         f.write(".class public Lcom/mod/almasoffikal/ModMenuService;\n.super Landroid/app/Service;\n\n.method public onCreate()V\n    .locals 0\n    invoke-super {p0}, Landroid/app/Service;->onCreate()V\n    return-void\n.end method\n\n.method public onBind(Landroid/content/Intent;)Landroid/os/IBinder;\n    .locals 1\n    const/4 v0, 0x0\n    return-object v0\n.end method")
 
 if __name__ == "__main__":
-    clean_resources()
+    patch_all_resources()
     add_mod_menu()
-    print("PATCHER: Success")
+    print("PATCHER: Success - Resources and XML links updated.")

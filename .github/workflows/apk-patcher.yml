@@ -26,7 +26,7 @@ jobs:
         run: python3 patch.py
 
       - name: Rebuild APK
-        run: apktool b decompiled -o patched_unsigned.apk
+        run: apktool b decompiled --use-aapt2 -o patched_unsigned.apk
 
       - name: Sign APK
         run: |

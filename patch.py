@@ -1,6 +1,6 @@
 import os
 
-def patch_all_resources():
+def patch_all():
     res_dir = "decompiled/res"
     
     # 1. Файл аттарын өзгерту (rename)
@@ -12,7 +12,7 @@ def patch_all_resources():
                 new_path = os.path.join(root, new_name)
                 os.rename(old_path, new_path)
 
-    # 2. Барлық XML файлдардың ішіндегі сілтемелерді жаңарту
+    # 2. Барлық XML файлдарды сканерлеп, ішіндегі $ сілтемелерін ауыстыру
     for root, dirs, files in os.walk(res_dir):
         for file in files:
             if file.endswith(".xml"):
@@ -20,8 +20,8 @@ def patch_all_resources():
                 with open(path, 'r', encoding='utf-8') as f:
                     content = f.read()
                 
-                # drawable/$name -> drawable/s_name
-                new_content = content.replace("drawable/$", "drawable/s_")
+                # Тек файл аттары емес, кодтағы сілтемелерді де s_-ке ауыстыру
+                new_content = content.replace("$", "s_")
                 
                 if content != new_content:
                     with open(path, 'w', encoding='utf-8') as f:
@@ -43,6 +43,6 @@ def add_mod_menu():
         f.write(".class public Lcom/mod/almasoffikal/ModMenuService;\n.super Landroid/app/Service;\n\n.method public onCreate()V\n    .locals 0\n    invoke-super {p0}, Landroid/app/Service;->onCreate()V\n    return-void\n.end method\n\n.method public onBind(Landroid/content/Intent;)Landroid/os/IBinder;\n    .locals 1\n    const/4 v0, 0x0\n    return-object v0\n.end method")
 
 if __name__ == "__main__":
-    patch_all_resources()
+    patch_all()
     add_mod_menu()
-    print("PATCHER: Success - Resources and XML links updated.")
+    print("PATCHER: Success - Everything renamed to s_")

@@ -19,10 +19,13 @@ jobs:
           sudo cp apktool_2.9.3.jar /usr/local/bin/apktool.jar
           echo '#!/bin/bash' | sudo tee /usr/local/bin/apktool
           echo 'java -jar /usr/local/bin/apktool.jar "$@"' | sudo tee -a /usr/local/bin/apktool
-          sudo chmod +x /usr/local/bin/apktool /usr/local/bin/apktool.jar
+          sudo chmod +x /usr/local/bin/apktool
+
+      - name: Assemble
+        run: cat Free_Fire.8.apk.part* > Free_Fire.8.apk
 
       - name: Decompile
-        run: apktool d "Free_Fire.8.apk" -f -o decompiled
+        run: apktool d Free_Fire.8.apk -f -o decompiled
 
       - name: Patch
         run: python3 patch.py

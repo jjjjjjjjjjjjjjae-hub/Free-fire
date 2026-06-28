@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Environment
+      - name: Setup
         run: |
           sudo apt-get update
           sudo apt-get install -y apksigner openjdk-17-jdk wget zipalign
@@ -21,26 +21,23 @@ jobs:
           echo 'java -jar /usr/local/bin/apktool.jar "$@"' | sudo tee -a /usr/local/bin/apktool
           sudo chmod +x /usr/local/bin/apktool /usr/local/bin/apktool.jar
 
-      - name: Assemble APK
-        run: cat Free_Fire.8.apk.part* > app.apk
-
       - name: Decompile
-        run: apktool d app.apk -f -o decompiled
+        run: apktool d "Free_Fire.8.apk" -f -o decompiled
 
       - name: Patch
         run: python3 patch.py
 
-      - name: Rebuild
-        run: apktool b decompiled --use-aapt2 -o patched_unsigned.apk
+      - name: Build
+        run: apktool b decompiled --use-aapt2 -o patched.apk
 
       - name: Sign & Align
         run: |
           keytool -genkey -v -keystore release.keystore -alias key -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=Android"
-          zipalign -v 4 patched_unsigned.apk aligned.apk
+          zipalign -v 4 patched.apk aligned.apk
           apksigner sign --ks release.keystore --ks-pass pass:123456 --v2-signing-enabled true --v3-signing-enabled true --out final.apk aligned.apk
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: Almas-Modded-APK
+          name: Modded-APK
           path: final.apk

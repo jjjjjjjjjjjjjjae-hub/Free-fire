@@ -1,16 +1,13 @@
 name: Auto Patch APK
-
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup
         run: |
           sudo apt-get update
@@ -20,27 +17,21 @@ jobs:
           echo '#!/bin/bash' | sudo tee /usr/local/bin/apktool
           echo 'java -jar /usr/local/bin/apktool.jar "$@"' | sudo tee -a /usr/local/bin/apktool
           sudo chmod +x /usr/local/bin/apktool
-
       - name: Assemble
         run: cat Free_Fire.8.apk.part* > Free_Fire.8.apk
-
       - name: Decompile
         run: apktool d Free_Fire.8.apk -f -o decompiled
-
       - name: Patch
         run: python3 patch.py
-
       - name: Build
         run: apktool b decompiled --use-aapt2 -o patched.apk
-
       - name: Sign & Align
         run: |
           keytool -genkey -v -keystore release.keystore -alias key -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=Android"
           zipalign -v 4 patched.apk aligned.apk
           apksigner sign --ks release.keystore --ks-pass pass:123456 --v2-signing-enabled true --v3-signing-enabled true --out final.apk aligned.apk
-
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: Modded-APK
+          name: Almas-Menu-Mod
           path: final.apk

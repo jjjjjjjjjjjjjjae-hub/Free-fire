@@ -2,43 +2,33 @@ import os
 import re
 
 def clean_public_xml():
+    res_path = "decompiled/res"
     public_xml = "decompiled/res/values/public.xml"
-    if not os.path.exists(public_xml): 
-        print("[!] public.xml табылмады.")
-        return
 
-    print("[*] public.xml ішіндегі қате сілтемелерді тазарту...")
-    
-    # Қате беретін drawable аттары
-    problematic_resources = [
-        "avd_hide_password", "avd_show_password", 
-        "m3_avd_hide_password", "m3_avd_show_password",
-        "mtrl_checkbox_button"
-    ]
+    # 1. Барлық бар drawable файлдардың тізімін жинау
+    valid_drawables = set()
+    for root, dirs, files in os.walk(res_path):
+        if "drawable" in root:
+            for file in files:
+                valid_drawables.add(os.path.splitext(file)[0])
 
-    with open(public_xml, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
+    # 2. public.xml-ді оқып, жоқ ресурстарды өшіру
+    if os.path.exists(public_xml):
+        with open(public_xml, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
 
-    with open(public_xml, 'w', encoding='utf-8') as f:
-        for line in lines:
-            should_skip = False
-            for prob in problematic_resources:
-                if prob in line:
-                    should_skip = True
-                    break
-            if not should_skip:
+        with open(public_xml, 'w', encoding='utf-8') as f:
+            for line in lines:
+                match = re.search(r'name="drawable/([^"]+)"', line)
+                if match:
+                    drawable_name = match.group(1)
+                    # Егер бұл сурет папкада жоқ болса, оны public.xml-ге жазбаймыз
+                    if drawable_name not in valid_drawables:
+                        continue 
                 f.write(line)
     print("[+] public.xml тазартылды.")
 
-def patch_resources_and_manifest():
-    # 1. $ белгісін өзгерту
-    res_dir = "decompiled/res"
-    for root, dirs, files in os.walk(res_dir):
-        for file in files:
-            if "$" in file:
-                os.rename(os.path.join(root, file), os.path.join(root, file.replace("$", "s_")))
-    
-    # 2. Manifest патчтау
+def patch_manifest():
     manifest = "decompiled/AndroidManifest.xml"
     if os.path.exists(manifest):
         with open(manifest, 'r', encoding='utf-8') as f:
@@ -52,5 +42,5 @@ def patch_resources_and_manifest():
 
 if __name__ == "__main__":
     clean_public_xml()
-    patch_resources_and_manifest()
+    patch_manifest()
     print("PATCHER: Success")

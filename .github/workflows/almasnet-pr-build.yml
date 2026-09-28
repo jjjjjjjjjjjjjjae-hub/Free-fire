@@ -12,6 +12,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -21,20 +23,12 @@ jobs:
         with:
           gradle-version: '8.7'
 
-      - name: Download and decode source
-        run: |
-          curl -L --fail 'https://raw.githubusercontent.com/jjjjjjjjjjjjjjae-hub/Almas.offikal/almasnet-root-build-20260928/almasnet_min_src_tgz_v2.b64' -o /tmp/almasnet_min_src_tgz.b64
-          base64 -d /tmp/almasnet_min_src_tgz.b64 > /tmp/almasnet_min_src.tar.gz
-          rm -rf /tmp/almasnet-root-build
-          mkdir -p /tmp/almasnet-root-build/AlmasNetRoot
-          tar -xzf /tmp/almasnet_min_src.tar.gz -C /tmp/almasnet-root-build/AlmasNetRoot
-
       - name: Build debug APK
-        working-directory: /tmp/almasnet-root-build/AlmasNetRoot
+        working-directory: almasnet-root-app
         run: gradle :app:assembleDebug --stacktrace --no-daemon
 
       - name: Collect APK
-        run: cp /tmp/almasnet-root-build/AlmasNetRoot/app/build/outputs/apk/debug/app-debug.apk ./AlmasNetRoot-debug.apk
+        run: cp almasnet-root-app/app/build/outputs/apk/debug/app-debug.apk ./AlmasNetRoot-debug.apk
 
       - uses: actions/upload-artifact@v4
         with:

@@ -23,7 +23,7 @@ jobs:
 
       - name: Download and decode source
         run: |
-          curl -L --fail 'https://raw.githubusercontent.com/jjjjjjjjjjjjjjae-hub/Almas.offikal/almasnet-root-build-20260928/almasnet_min_src_tgz.b64' -o /tmp/almasnet_min_src_tgz.b64
+          curl -L --fail 'https://raw.githubusercontent.com/jjjjjjjjjjjjjjae-hub/Almas.offikal/almasnet-root-build-20260928/almasnet_min_src_tgz_v2.b64' -o /tmp/almasnet_min_src_tgz.b64
           base64 -d /tmp/almasnet_min_src_tgz.b64 > /tmp/almasnet_min_src.tar.gz
           rm -rf /tmp/almasnet-root-build
           mkdir -p /tmp/almasnet-root-build/AlmasNetRoot

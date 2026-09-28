@@ -1,0 +1,42 @@
+name: Temporary AlmasNet Root PR Build
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Download and decode source
+        run: |
+          curl -L --fail 'https://raw.githubusercontent.com/jjjjjjjjjjjjjjae-hub/Almas.offikal/almasnet-root-build-20260928/almasnet_root_source.b64' -o /tmp/almasnet_root_source.b64
+          base64 -d /tmp/almasnet_root_source.b64 > /tmp/AlmasNetRoot_SOURCE.zip
+          mkdir -p /tmp/almasnet-root-build
+          unzip -q /tmp/AlmasNetRoot_SOURCE.zip -d /tmp/almasnet-root-build
+
+      - name: Build debug APK
+        working-directory: /tmp/almasnet-root-build/AlmasNetRoot
+        run: gradle :app:assembleDebug --stacktrace --no-daemon
+
+      - name: Collect APK
+        run: cp /tmp/almasnet-root-build/AlmasNetRoot/app/build/outputs/apk/debug/app-debug.apk ./AlmasNetRoot-debug.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AlmasNetRoot-debug
+          path: AlmasNetRoot-debug.apk
+          if-no-files-found: error

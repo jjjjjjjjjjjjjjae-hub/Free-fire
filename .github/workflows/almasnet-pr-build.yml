@@ -12,7 +12,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -23,10 +23,11 @@ jobs:
 
       - name: Download and decode source
         run: |
-          curl -L --fail 'https://raw.githubusercontent.com/jjjjjjjjjjjjjjae-hub/Almas.offikal/almasnet-root-build-20260928/almasnet_root_source.b64' -o /tmp/almasnet_root_source.b64
-          base64 -d /tmp/almasnet_root_source.b64 > /tmp/AlmasNetRoot_SOURCE.zip
-          mkdir -p /tmp/almasnet-root-build
-          unzip -q /tmp/AlmasNetRoot_SOURCE.zip -d /tmp/almasnet-root-build
+          curl -L --fail 'https://raw.githubusercontent.com/jjjjjjjjjjjjjjae-hub/Almas.offikal/almasnet-root-build-20260928/almasnet_min_src_tgz.b64' -o /tmp/almasnet_min_src_tgz.b64
+          base64 -d /tmp/almasnet_min_src_tgz.b64 > /tmp/almasnet_min_src.tar.gz
+          rm -rf /tmp/almasnet-root-build
+          mkdir -p /tmp/almasnet-root-build/AlmasNetRoot
+          tar -xzf /tmp/almasnet_min_src.tar.gz -C /tmp/almasnet-root-build/AlmasNetRoot
 
       - name: Build debug APK
         working-directory: /tmp/almasnet-root-build/AlmasNetRoot

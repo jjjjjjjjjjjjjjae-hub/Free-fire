@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.btnRoot.setOnClickListener { requestRootAccess(auto = false) }
         binding.btnTest.setOnClickListener { refreshAndTest() }
         binding.btnGaming.setOnClickListener { applyMode("Gaming") { tuner.applyGaming() } }
         binding.btnBalanced.setOnClickListener { applyMode("Balanced") { tuner.applyBalanced() } }
@@ -39,7 +40,48 @@ class MainActivity : AppCompatActivity() {
         binding.btnRestore.setOnClickListener { restore() }
 
         original = loadSnapshot()
-        refreshAndTest()
+        requestRootAccess(auto = true)
+    }
+
+    private fun requestRootAccess(auto: Boolean) {
+        if (!auto) {
+            Shell.getCachedShell()?.let { cached ->
+                if (!cached.isRoot) runCatching { cached.close() }
+            }
+        }
+
+        setBusy(true)
+        binding.btnRoot.isEnabled = false
+        binding.txtRoot.text = "ROOT: сұралуда..."
+        binding.txtLog.text = if (auto) {
+            "Magisk/Superuser терезесінен ROOT рұқсатын беріңіз."
+        } else {
+            "ROOT рұқсаты қайта сұралуда..."
+        }
+
+        try {
+            Shell.getShell { shell ->
+                if (shell.isRoot) {
+                    binding.txtRoot.text = "ROOT: OK"
+                    binding.txtLog.text = "ROOT рұқсаты берілді."
+                    binding.btnRoot.text = "ROOT РҰҚСАТЫ: БЕРІЛДІ"
+                    binding.btnRoot.isEnabled = true
+                    refreshAndTest()
+                } else {
+                    binding.txtRoot.text = "ROOT: ЖОҚ"
+                    binding.txtLog.text = "ROOT рұқсаты берілмеді. Magisk ішінде AlmasNet Root үшін рұқсатты қосып, осы батырманы қайта басыңыз."
+                    binding.btnRoot.text = "ROOT РҰҚСАТЫН СҰРАУ"
+                    binding.btnRoot.isEnabled = true
+                    setBusy(false)
+                }
+            }
+        } catch (t: Throwable) {
+            binding.txtRoot.text = "ROOT: ҚАТЕ"
+            binding.txtLog.text = "ROOT сұрау қатесі: ${t.message ?: "белгісіз"}"
+            binding.btnRoot.text = "ROOT РҰҚСАТЫН СҰРАУ"
+            binding.btnRoot.isEnabled = true
+            setBusy(false)
+        }
     }
 
     private fun refreshAndTest() {
@@ -113,6 +155,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setBusy(busy: Boolean) {
+        binding.btnRoot.isEnabled = !busy
         binding.btnTest.isEnabled = !busy
         binding.btnGaming.isEnabled = !busy
         binding.btnBalanced.isEnabled = !busy
